@@ -1,0 +1,29 @@
+{
+  "name": "abi-storage-dbops",
+  "version": "2.2.0",
+  "description": "Database schema and tools.",
+  "private": true,
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "import": "npm run import:gql && npm run import:fql",
+    "import:gql": "node tools/import-graphql-schema.js",
+    "import:fql": "node tools/import-fql-resources.js"
+  },
+  "keywords": [
+    "fauna",
+    "db",
+    "database"
+  ],
+  "author": "SEE CONTRIBUTORS",
+  "license": "SEE LICENSE IN LICENSE",
+  "dependencies": {
+    "graphql-request": "^3.4.0"
+  },
+  "devDependencies": {
+    "@web-std/fetch": "^2.0.1",
+    "dotenv": "^10.0.0",
+    "faunadb": "^4.4.1",
+    "standard": "^16.0.3"
+  }
+}

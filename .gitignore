@@ -1,0 +1,21 @@
+.DS_Store
+node_modules
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.log
+dist
+worker
+yarn.lock
+site/public
+.cluster
+*.http
+
+# testing
+coverage
+.nyc_output
+
+# next.js
+.next
+out
