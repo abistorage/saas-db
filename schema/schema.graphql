@@ -1,0 +1,1307 @@
+directive @embedded on OBJECT
+directive @collection(name: String!) on OBJECT
+directive @index(name: String!) on FIELD_DEFINITION
+directive @resolver(
+  name: String
+  paginated: Boolean! = false
+) on FIELD_DEFINITION
+directive @relation(name: String) on FIELD_DEFINITION
+directive @unique(index: String) on FIELD_DEFINITION
+# An aggregate of content for inclusion in a Filecoin deal.
+type Aggregate {
+  # CID of the root of the aggregate data.
+  dataCid: String!
+  # The document's ID.
+  _id: ID!
+  # Entries included in this aggregate.
+  entries(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+  ): AggregateEntryPage!
+  # Deals this aggregation can be found in.
+  deals(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+  ): DealPage!
+  # Piece CID.
+  pieceCid: String!
+  # Creation date.
+  created: Time!
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# Allow manipulating the relationship between the types 'Aggregate' and 'Deal'.
+input AggregateDealsRelation {
+  # Create one or more documents of type 'Deal' and associate them with the current document.
+  create: [DealInput]
+  # Connect one or more documents of type 'Deal' with the current document using their IDs.
+  connect: [ID]
+  # Disconnect the given documents of type 'Deal' from the current document using their IDs.
+  disconnect: [ID]
+}
+
+# Allow manipulating the relationship between the types 'Aggregate' and 'AggregateEntry'.
+input AggregateEntriesRelation {
+  # Create one or more documents of type 'AggregateEntry' and associate them with the current document.
+  create: [AggregateEntryInput]
+  # Connect one or more documents of type 'AggregateEntry' with the current document using their IDs.
+  connect: [ID]
+  # Disconnect the given documents of type 'AggregateEntry' from the current document using their IDs.
+  disconnect: [ID]
+}
+
+# Information about an entry included in an aggregate.
+type AggregateEntry {
+  # The document's ID.
+  _id: ID!
+  # Selector for extracting stored data from the aggregate data root.
+  dataModelSelector: String
+  # The aggregate this entry resides in.
+  aggregate: Aggregate!
+  # The content this entry is for.
+  content: Content!
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# Allow manipulating the relationship between the types 'AggregateEntry' and
+# 'Aggregate' using the field 'AggregateEntry.aggregate'.
+input AggregateEntryAggregateRelation {
+  # Create a document of type 'Aggregate' and associate it with the current document.
+  create: AggregateInput
+  # Connect a document of type 'Aggregate' with the current document using its ID.
+  connect: ID
+}
+
+# Allow manipulating the relationship between the types 'AggregateEntry' and
+# 'Content' using the field 'AggregateEntry.content'.
+input AggregateEntryContentRelation {
+  # Create a document of type 'Content' and associate it with the current document.
+  create: ContentInput
+  # Connect a document of type 'Content' with the current document using its ID.
+  connect: ID
+}
+
+input AggregateEntryInput {
+  cid: String!
+  dataModelSelector: String
+  dagSize: Long
+}
+
+# The pagination object for elements of type 'AggregateEntry'.
+type AggregateEntryPage {
+  # The elements of type 'AggregateEntry' in this page.
+  data: [AggregateEntry]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# 'Aggregate' input values
+input AggregateInput {
+  # CID of the root of the aggregate data.
+  dataCid: String!
+  # Piece CID.
+  pieceCid: String!
+  # Deals this aggregation can be found in.
+  deals: AggregateDealsRelation
+  # Entries included in this aggregate.
+  entries: AggregateEntriesRelation
+  # Creation date.
+  created: Time!
+}
+
+# API authentication tokens.
+type AuthToken {
+  # Secret that corresponds to this token.
+  secret: String!
+  # User assigned name.
+  name: String!
+  # Uploads made using this token.
+  uploads(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+  ): UploadPage!
+  # The document's ID.
+  _id: ID!
+  # User this token belongs to.
+  user: User!
+  # Deletion date.
+  deleted: Time
+  # Creation date.
+  created: Time!
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# 'AuthToken' input values
+input AuthTokenInput {
+  # User assigned name.
+  name: String!
+  # Secret that corresponds to this token.
+  secret: String!
+  # Uploads made using this token.
+  uploads: AuthTokenUploadsRelation
+  # User this token belongs to.
+  user: AuthTokenUserRelation
+  # Creation date.
+  created: Time!
+  # Deletion date.
+  deleted: Time
+}
+
+# The pagination object for elements of type 'AuthToken'.
+type AuthTokenPage {
+  # The elements of type 'AuthToken' in this page.
+  data: [AuthToken]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# Allow manipulating the relationship between the types 'AuthToken' and 'Upload'.
+input AuthTokenUploadsRelation {
+  # Create one or more documents of type 'Upload' and associate them with the current document.
+  create: [UploadInput]
+  # Connect one or more documents of type 'Upload' with the current document using their IDs.
+  connect: [ID]
+  # Disconnect the given documents of type 'Upload' from the current document using their IDs.
+  disconnect: [ID]
+}
+
+# Allow manipulating the relationship between the types 'AuthToken' and 'User' using the field 'AuthToken.user'.
+input AuthTokenUserRelation {
+  # Create a document of type 'User' and associate it with the current document.
+  create: UserInput
+  # Connect a document of type 'User' with the current document using its ID.
+  connect: ID
+}
+
+# Details of the root of a file/directory stored on web3.storage.
+type Content {
+  # Content for deals is aggregated together. Each aggregation has many entries.
+  # These are the entries that this content appears in.
+  aggregateEntries(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+  ): AggregateEntryPage!
+  # The document's ID.
+  _id: ID!
+  # Root CID for this content.
+  cid: String!
+  # Size of the DAG in bytes. Set if known on upload or for partials is set when
+  # content is fully pinned in at least one location.
+  dagSize: Long
+  # IPFS nodes pinning this content.
+  pins(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+  ): PinPage!
+  # Creation date.
+  created: Time!
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# Allow manipulating the relationship between the types 'Content' and 'AggregateEntry'.
+input ContentAggregateEntriesRelation {
+  # Create one or more documents of type 'AggregateEntry' and associate them with the current document.
+  create: [AggregateEntryInput]
+  # Connect one or more documents of type 'AggregateEntry' with the current document using their IDs.
+  connect: [ID]
+  # Disconnect the given documents of type 'AggregateEntry' from the current document using their IDs.
+  disconnect: [ID]
+}
+
+# 'Content' input values
+input ContentInput {
+  # Root CID for this content.
+  cid: String!
+  # IPFS nodes pinning this content.
+  pins: ContentPinsRelation
+  # Content for deals is aggregated together. Each aggregation has many entries.
+  # These are the entries that this content appears in.
+  aggregateEntries: ContentAggregateEntriesRelation
+  # Size of the DAG in bytes. Set if known on upload or for partials is set when
+  # content is fully pinned in at least one location.
+  dagSize: Long
+  # Creation date.
+  created: Time!
+}
+
+# Allow manipulating the relationship between the types 'Content' and 'Pin'.
+input ContentPinsRelation {
+  # Create one or more documents of type 'Pin' and associate them with the current document.
+  create: [PinInput]
+  # Connect one or more documents of type 'Pin' with the current document using their IDs.
+  connect: [ID]
+  # Disconnect the given documents of type 'Pin' from the current document using their IDs.
+  disconnect: [ID]
+}
+
+input CreateAggregateInput {
+  dataCid: String!
+  pieceCid: String!
+}
+
+input CreateAuthTokenInput {
+  user: ID!
+  name: String!
+  secret: String!
+}
+
+input CreateOrUpdateDealInput {
+  # CID of the aggregate included in this deal. Required for create, ignored for update.
+  dataCid: String
+  storageProvider: String
+  dealId: Long!
+  activation: Time
+  renewal: Time
+  status: DealStatus!
+  statusReason: String
+}
+
+input CreateOrUpdateMetricInput {
+  key: String!
+  value: Long!
+  updated: Time
+}
+
+input CreateOrUpdatePinInput {
+  content: ID!
+  status: PinStatus!
+  location: PinLocationInput!
+}
+
+input CreateOrUpdateUserInput {
+  name: String!
+  picture: String
+  email: String!
+  issuer: String!
+  github: String
+  publicAddress: String!
+}
+
+input CreateUploadInput {
+  user: ID!
+  authToken: ID
+  cid: String!
+  type: UploadType!
+  name: String
+  dagSize: Long
+  chunkSize: Long
+  pins: [PinInput!]!
+}
+
+scalar Date
+
+# Filecoin deal for an aggregation of content.
+type Deal {
+  # Human readable reason for the current status.
+  statusReason: String
+  # Time when deal will be active.
+  activation: Time
+  # The document's ID.
+  _id: ID!
+  # Content aggregate for this deal.
+  aggregate: Aggregate!
+  # Last time this deal was updated.
+  updated: Time!
+  # Current deal status.
+  status: DealStatus!
+  # Time when deal has expired and will renew.
+  renewal: Time
+  # ID of storage provider this deal was made with.
+  storageProvider: String!
+  # Identifier for the deal stored on chain.
+  dealId: Long!
+  # Creation date.
+  created: Time!
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# Allow manipulating the relationship between the types 'Deal' and 'Aggregate' using the field 'Deal.aggregate'.
+input DealAggregateRelation {
+  # Create a document of type 'Aggregate' and associate it with the current document.
+  create: AggregateInput
+  # Connect a document of type 'Aggregate' with the current document using its ID.
+  connect: ID
+}
+
+# 'Deal' input values
+input DealInput {
+  # Content aggregate for this deal.
+  aggregate: DealAggregateRelation
+  # ID of storage provider this deal was made with.
+  storageProvider: String!
+  # Identifier for the deal stored on chain.
+  dealId: Long!
+  # Time when deal will be active.
+  activation: Time
+  # Time when deal has expired and will renew.
+  renewal: Time
+  # Current deal status.
+  status: DealStatus!
+  # Human readable reason for the current status.
+  statusReason: String
+  # Creation date.
+  created: Time!
+  # Last time this deal was updated.
+  updated: Time!
+}
+
+# The pagination object for elements of type 'Deal'.
+type DealPage {
+  # The elements of type 'Deal' in this page.
+  data: [Deal]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+enum DealStatus {
+  Queued
+  Published
+  Active
+  Terminated
+}
+
+input FindUploadsByUserInput {
+  user: ID!
+  createdBefore: Time!
+}
+
+# The `Long` scalar type
+ represents non-fractional signed whole numeric values.
+# Long can represent values between -(2^63) and 2^63 - 1.
+scalar Long
+
+type Metric {
+  # The document's ID.
+  _id: ID!
+  # Unique key identifying the metric.
+  key: String!
+  # Last time this metric was updated.
+  updated: Time!
+  # Current value for the metric, see updated property for last calculation date.
+  value: Long!
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# 'Metric' input values
+input MetricInput {
+  # Unique key identifying the metric.
+  key: String!
+  # Current value for the metric, see updated property for last calculation date.
+  value: Long!
+  # Last time this metric was updated.
+  updated: Time!
+}
+
+type Mutation {
+  deletePinRequests(requests: [ID!]!): [PinRequest!]!
+  # Update an existing document in the collection of 'User'
+  updateUser(
+    # The 'User' document's ID
+    id: ID!
+    # 'User' input values
+    data: UserInput!
+  ): User
+  # Create a new document in the collection of 'Pin'
+  createPin(
+    # 'Pin' input values
+    data: PinInput!
+  ): Pin!
+  updatePins(pins: [UpdatePinInput!]!): [Pin!]!
+  # Create a new document in the collection of 'User'
+  createUser(
+    # 'User' input values
+    data: UserInput!
+  ): User!
+  # Update an existing document in the collection of 'Pin'
+  updatePin(
+    # The 'Pin' document's ID
+    id: ID!
+    # 'Pin' input values
+    data: PinInput!
+  ): Pin
+  # Update an existing document in the collection of 'Upload'
+  updateUpload(
+    # The 'Upload' document's ID
+    id: ID!
+    # 'Upload' input values
+    data: UploadInput!
+  ): Upload
+  # Create a new document in the collection of 'Deal'
+  createDeal(
+    # 'Deal' input values
+    data: DealInput!
+  ): Deal!
+  # Creates a new pin object (and location) or updates an existing pin object.
+  createOrUpdatePin(data: CreateOrUpdatePinInput): Pin!
+  # Update an existing document in the collection of 'Metric'
+  updateMetric(
+    # The 'Metric' document's ID
+    id: ID!
+    # 'Metric' input values
+    data: MetricInput!
+  ): Metric
+  createAuthToken(data: CreateAuthTokenInput): AuthToken!
+  incrementPinRequestAttempts(pinRequest: ID!): PinRequest!
+  # Update an existing document in the collection of 'PinRequest'
+  updatePinRequest(
+    # The 'PinRequest' document's ID
+    id: ID!
+    # 'PinRequest' input values
+    data: PinRequestInput!
+  ): PinRequest
+  # Create a new document in the collection of 'PinLocation'
+  createPinLocation(
+    # 'PinLocation' input values
+    data: PinLocationInput!
+  ): PinLocation!
+  updateContentDagSize(content: ID!, dagSize: Long!): Content!
+  # Delete an existing document in the collection of 'Upload'
+  deleteUpload(
+    # The 'Upload' document's ID
+    id: ID!
+  ): Upload
+  # Delete an existing document in the collection of 'PinLocation'
+  deletePinLocation(
+    # The 'PinLocation' document's ID
+    id: ID!
+  ): PinLocation
+  # Update an existing document in the collection of 'Deal'
+  updateDeal(
+    # The 'Deal' document's ID
+    id: ID!
+    # 'Deal' input values
+    data: DealInput!
+  ): Deal
+  # Create a new document in the collection of 'PinSyncRequest'
+  createPinSyncRequest(
+    # 'PinSyncRequest' input values
+    data: PinSyncRequestInput!
+  ): PinSyncRequest!
+  createOrUpdateDeal(data: CreateOrUpdateDealInput!): Deal!
+  createAggregate(data: CreateAggregateInput!): Aggregate!
+  # Update an existing document in the collection of 'Aggregate'
+  updateAggregate(
+    # The 'Aggregate' document's ID
+    id: ID!
+    # 'Aggregate' input values
+    data: AggregateInput!
+  ): Aggregate
+  # Create a new document in the collection of 'AggregateEntry'
+  createAggregateEntry(
+    # 'AggregateEntry' input values
+    data: AggregateEntryInput!
+  ): AggregateEntry!
+  # Delete an existing document in the collection of 'Metric'
+  deleteMetric(
+    # The 'Metric' document's ID
+    id: ID!
+  ): Metric
+  createOrUpdateUser(data: CreateOrUpdateUserInput!): User!
+  # Update an existing document in the collection of 'PinLocation'
+  updatePinLocation(
+    # The 'PinLocation' document's ID
+    id: ID!
+    # 'PinLocation' input values
+    data: PinLocationInput!
+  ): PinLocation
+  # Delete an existing document in the collection of 'PinSyncRequest'
+  deletePinSyncRequest(
+    # The 'PinSyncRequest' document's ID
+    id: ID!
+  ): PinSyncRequest
+  createUpload(data: CreateUploadInput!): Upload!
+  createPinSyncRequests(pins: [ID!]!): [PinSyncRequest!]!
+  incrementUserUsedStorage(user: ID!, amount: Long!): User!
+  # Delete an existing document in the collection of 'AggregateEntry'
+  deleteAggregateEntry(
+    # The 'AggregateEntry' document's ID
+    id: ID!
+  ): AggregateEntry
+  # Delete an existing document in the collection of 'Pin'
+  deletePin(
+    # The 'Pin' document's ID
+    id: ID!
+  ): Pin
+  # Delete an existing document in the collection of 'PinRequest'
+  deletePinRequest(
+    # The 'PinRequest' document's ID
+    id: ID!
+  ): PinRequest
+  # Delete an existing document in the collection of 'User'
+  deleteUser(
+    # The 'User' document's ID
+    id: ID!
+  ): User
+  renameUserUpload(user: ID!, cid: String!, name: String!): Upload!
+  createOrUpdateMetric(data: CreateOrUpdateMetricInput!): Metric!
+  # Create a new document in the collection of 'Content'
+  createContent(
+    # 'Content' input values
+    data: ContentInput!
+  ): Content!
+  # Create a new document in the collection of 'Metric'
+  createMetric(
+    # 'Metric' input values
+    data: MetricInput!
+  ): Metric!
+  deleteUploadByUserAndContent(user: ID!, content: ID!): Upload!
+  # Adds new entries to the aggregate, existing entries are ignored.
+  addAggregateEntries(
+    dataCid: String!
+    entries: [AggregateEntryInput!]!
+  ): Aggregate!
+  deleteAuthToken(user: ID!, authToken: ID!): AuthToken!
+  deletePinSyncRequests(requests: [ID!]!): [PinSyncRequest!]!
+  # Update an existing document in the collection of 'Content'
+  updateContent(
+    # The 'Content' document's ID
+    id: ID!
+    # 'Content' input values
+    data: ContentInput!
+  ): Content
+  deleteUserUpload(user: ID!, cid: String!): Upload!
+  # Delete an existing document in the collection of 'Aggregate'
+  deleteAggregate(
+    # The 'Aggregate' document's ID
+    id: ID!
+  ): Aggregate
+  # Update an existing document in the collection of 'AuthToken'
+  updateAuthToken(
+    # The 'AuthToken' document's ID
+    id: ID!
+    # 'AuthToken' input values
+    data: AuthTokenInput!
+  ): AuthToken
+  # Delete an existing document in the collection of 'Deal'
+  deleteDeal(
+    # The 'Deal' document's ID
+    id: ID!
+  ): Deal
+  # Delete an existing document in the collection of 'Content'
+  deleteContent(
+    # The 'Content' document's ID
+    id: ID!
+  ): Content
+  createPinRequest(cid: String!): PinRequest!
+  # Update an existing document in the collection of 'AggregateEntry'
+  updateAggregateEntry(
+    # The 'AggregateEntry' document's ID
+    id: ID!
+    # 'AggregateEntry' input values
+    data: AggregateEntryInput!
+  ): AggregateEntry
+  # Update an existing document in the collection of 'PinSyncRequest'
+  updatePinSyncRequest(
+    # The 'PinSyncRequest' document's ID
+    id: ID!
+    # 'PinSyncRequest' input values
+    data: PinSyncRequestInput!
+  ): PinSyncRequest
+}
+
+# Information for piece of content pinned in IPFS.
+type Pin {
+  # Identifier for the service that is pinning this pin.
+  location: PinLocation!
+  # The document's ID.
+  _id: ID!
+  # Last time the status was updated.
+  updated: Time!
+  # Pinning status at this location.
+  status: PinStatus!
+  # The content being pinned.
+  content: Content!
+  # Creation date.
+  created: Time!
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# Allow manipulating the relationship between the types 'Pin' and 'Content' using the field 'Pin.content'.
+input PinContentRelation {
+  # Create a document of type 'Content' and associate it with the current document.
+  create: ContentInput
+  # Connect a document of type 'Content' with the current document using its ID.
+  connect: ID
+}
+
+input PinInput {
+  status: PinStatus!
+  location: PinLocationInput!
+}
+
+# Location of a pin.
+type PinLocation {
+  # The document's ID.
+  _id: ID!
+  # Libp2p peer ID of the node pinning this pin.
+  peerId: String!
+  # Name of the peer pinning this pin.
+  peerName: String
+  # Known pins at this location.
+  pins(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+  ): PinPage!
+  # Geographic region this node resides in.
+  region: String
+  # The document's timestamp.
+  _ts: Long!
+}
+
+input PinLocationInput {
+  peerId: String!
+  peerName: String
+  region: String
+}
+
+# Allow manipulating the relationship between the types 'PinLocation' and 'Pin'.
+input PinLocationPinsRelation {
+  # Create one or more documents of type 'Pin' and associate them with the current document.
+  create: [PinInput]
+  # Connect one or more documents of type 'Pin' with the current document using their IDs.
+  connect: [ID]
+  # Disconnect the given documents of type 'Pin' from the current document using their IDs.
+  disconnect: [ID]
+}
+
+# Allow manipulating the relationship between the types 'Pin' and 'PinLocation' using the field 'Pin.location'.
+input PinLocationRelation {
+  # Create a document of type 'PinLocation' and associate it with the current document.
+  create: PinLocationInput
+  # Connect a document of type 'PinLocation' with the current document using its ID.
+  connect: ID
+}
+
+# The pagination object for elements of type 'Pin'.
+type PinPage {
+  # The elements of type 'Pin' in this page.
+  data: [Pin]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# Tracks requests to replicate content to more nodes.
+type PinRequest {
+  # Number of times we have tried to pin this CID
+  attempts: Int!
+  # The document's ID.
+  _id: ID!
+  # Root CID to Pin.
+  cid: String!
+  # Last time attempts was updated
+  updated: Time!
+  # The content that we want replicated.
+  content: Content!
+  # When the PinRequest was created
+  created: Time!
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# Allow manipulating the relationship between the types 'PinRequest' and 'Content' using the field 'PinRequest.content'.
+input PinRequestContentRelation {
+  # Create a document of type 'Content' and associate it with the current document.
+  create: ContentInput
+  # Connect a document of type 'Content' with the current document using its ID.
+  connect: ID
+}
+
+# 'PinRequest' input values
+input PinRequestInput {
+  # Root CID to Pin.
+  cid: String!
+  # The content that we want replicated.
+  content: PinRequestContentRelation
+  # Number of times we have tried to pin this CID
+  attempts: Int!
+  # Last time attempts was updated
+  updated: Time!
+  # When the PinRequest was created
+  created: Time!
+}
+
+enum PinStatus {
+  Undefined
+  ClusterError
+  PinError
+  UnpinError
+  Pinned
+  Pinning
+  Unpinning
+  Unpinned
+  Remote
+  PinQueued
+  UnpinQueued
+  Sharded
+}
+
+# A request to keep a Pin in sync with the nodes that are pinning it.
+type PinSyncRequest {
+  # The document's ID.
+  _id: ID!
+  # The document's timestamp.
+  _ts: Long!
+  # The pin to keep in sync.
+  pin: Pin!
+  # When the PinSyncRequest was created.
+  created: Time!
+}
+
+# 'PinSyncRequest' input values
+input PinSyncRequestInput {
+  # The pin to keep in sync.
+  pin: PinSyncRequestPinRelation
+  # When the PinSyncRequest was created.
+  created: Time!
+}
+
+# Allow manipulating the relationship between the types 'PinSyncRequest' and 'Pin' using the field 'PinSyncRequest.pin'.
+input PinSyncRequestPinRelation {
+  # Create a document of type 'Pin' and associate it with the current document.
+  create: PinInput
+  # Connect a document of type 'Pin' with the current document using its ID.
+  connect: ID
+}
+
+type Query {
+  findContentByCreated(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    from: Time!
+    to: Time
+  ): QueryFindContentByCreatedPage!
+  findUserByIssuer(issuer: String!): User
+  # Find all uploads created after a given date. Note: this INCLUDES deleted uploads.
+  findUploadsCreatedAfter(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    since: Time!
+  ): QueryFindUploadsCreatedAfterPage!
+  findUsersByCreated(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    from: Time!
+    to: Time
+  ): QueryFindUsersByCreatedPage!
+  findUploadsByUser(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    where: FindUploadsByUserInput!
+    sortBy: UploadListSortBy
+    sortOrder: SortDirection
+  ): QueryFindUploadsByUserPage!
+  # Find a document from the collection of 'Upload' by its id.
+  findUploadByID(
+    # The 'Upload' document's ID
+    id: ID!
+  ): Upload
+  # Find a document from the collection of 'Metric' by its id.
+  findMetricByID(
+    # The 'Metric' document's ID
+    id: ID!
+  ): Metric
+  findAllPinRequests(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+  ): QueryFindAllPinRequestsPage!
+  countPins(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    from: Time!
+    to: Time
+  ): QueryCountPinsPage!
+  findMetricByKey(key: String!): Metric
+  findPinsByStatus(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    status: PinStatus!
+  ): QueryFindPinsByStatusPage!
+  # Find a document from the collection of 'User' by its id.
+  findUserByID(
+    # The 'User' document's ID
+    id: ID!
+  ): User
+  sumContentDagSize(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    from: Time!
+    to: Time
+  ): QuerySumContentDagSizePage!
+  # Find a document from the collection of 'PinLocation' by its id.
+  findPinLocationByID(
+    # The 'PinLocation' document's ID
+    id: ID!
+  ): PinLocation
+  countPinsByStatus(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    status: PinStatus!
+    from: Time!
+    to: Time
+  ): QueryCountPinsByStatusPage!
+  # Find a document from the collection of 'Content' by its id.
+  findContentByID(
+    # The 'Content' document's ID
+    id: ID!
+  ): Content
+  findAuthTokensByUser(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    user: ID!
+  ): QueryFindAuthTokensByUserPage!
+  countContent(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    from: Time!
+    to: Time
+  ): QueryCountContentPage!
+  findPinSyncRequests(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    from: Time
+    to: Time
+  ): QueryFindPinSyncRequestsPage!
+  # Find a document from the collection of 'Aggregate' by its id.
+  findAggregateByID(
+    # The 'Aggregate' document's ID
+    id: ID!
+  ): Aggregate
+  findPinsByStatusAndCreated(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    status: PinStatus!
+    from: Time!
+    to: Time
+  ): QueryFindPinsByStatusAndCreatedPage!
+  countUsers(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    from: Time!
+    to: Time
+  ): QueryCountUsersPage!
+  # Find a document from the collection of 'PinRequest' by its id.
+  findPinRequestByID(
+    # The 'PinRequest' document's ID
+    id: ID!
+  ): PinRequest
+  sumPinDagSize(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    from: Time!
+    to: Time
+  ): QuerySumPinDagSizePage!
+  # Find a document from the collection of 'Deal' by its id.
+  findDealByID(
+    # The 'Deal' document's ID
+    id: ID!
+  ): Deal
+  # Verify the User with the passed issuer owns the AuthToken with the passed secret.
+  verifyAuthToken(issuer: String!, secret: String!): AuthToken
+  # Find a document from the collection of 'PinSyncRequest' by its id.
+  findPinSyncRequestByID(
+    # The 'PinSyncRequest' document's ID
+    id: ID!
+  ): PinSyncRequest
+  # Find a document from the collection of 'AuthToken' by its id.
+  findAuthTokenByID(
+    # The 'AuthToken' document's ID
+    id: ID!
+  ): AuthToken
+  # Find a document from the collection of 'Pin' by its id.
+  findPinByID(
+    # The 'Pin' document's ID
+    id: ID!
+  ): Pin
+  countUploads(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+    from: Time!
+    to: Time
+  ): QueryCountUploadsPage!
+  findContentByCid(cid: String!): Content
+  # Find a document from the collection of 'AggregateEntry' by its id.
+  findAggregateEntryByID(
+    # The 'AggregateEntry' document's ID
+    id: ID!
+  ): AggregateEntry
+}
+
+# The pagination object for elements of type 'Long'.
+type QueryCountContentPage {
+  # The elements of type 'Long' in this page.
+  data: [Long]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'Long'.
+type QueryCountPinsByStatusPage {
+  # The elements of type 'Long' in this page.
+  data: [Long]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'Long'.
+type QueryCountPinsPage {
+  # The elements of type 'Long' in this page.
+  data: [Long]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'Long'.
+type QueryCountUploadsPage {
+  # The elements of type 'Long' in this page.
+  data: [Long]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'Long'.
+type QueryCountUsersPage {
+  # The elements of type 'Long' in this page.
+  data: [Long]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'PinRequest'.
+type QueryFindAllPinRequestsPage {
+  # The elements of type 'PinRequest' in this page.
+  data: [PinRequest]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'AuthToken'.
+type QueryFindAuthTokensByUserPage {
+  # The elements of type 'AuthToken' in this page.
+  data: [AuthToken]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'Content'.
+type QueryFindContentByCreatedPage {
+  # The elements of type 'Content' in this page.
+  data: [Content]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'Pin'.
+type QueryFindPinsByStatusAndCreatedPage {
+  # The elements of type 'Pin' in this page.
+  data: [Pin]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'Pin'.
+type QueryFindPinsByStatusPage {
+  # The elements of type 'Pin' in this page.
+  data: [Pin]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'PinSyncRequest'.
+type QueryFindPinSyncRequestsPage {
+  # The elements of type 'PinSyncRequest' in this page.
+  data: [PinSyncRequest]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'Upload'.
+type QueryFindUploadsByUserPage {
+  # The elements of type 'Upload' in this page.
+  data: [Upload]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'Upload'.
+type QueryFindUploadsCreatedAfterPage {
+  # The elements of type 'Upload' in this page.
+  data: [Upload]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'User'.
+type QueryFindUsersByCreatedPage {
+  # The elements of type 'User' in this page.
+  data: [User]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'Long'.
+type QuerySumContentDagSizePage {
+  # The elements of type 'Long' in this page.
+  data: [Long]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# The pagination object for elements of type 'Long'.
+type QuerySumPinDagSizePage {
+  # The elements of type 'Long' in this page.
+  data: [Long]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+enum SortDirection {
+  Asc
+  Desc
+}
+
+scalar Time
+
+input UpdatePinInput {
+  pin: ID!
+  status: PinStatus!
+}
+
+# An upload created by a user.
+type Upload {
+  # User provided name for this upload.
+  name: String
+  # User authentication token that was used to upload this content.
+  # Note: nullable, because the user may have used a Magic.link token.
+  authToken: AuthToken
+  # The document's ID.
+  _id: ID!
+  # The root of the uploaded content.
+  content: Content!
+  # Type of received upload data.
+  type: UploadType!
+  # User that uploaded this content.
+  user: User!
+  # Deletion date.
+  deleted: Time
+  # Creation date.
+  created: Time!
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# Allow manipulating the relationship between the types 'Upload' and 'AuthToken' using the field 'Upload.authToken'.
+input UploadAuthTokenRelation {
+  # Create a document of type 'AuthToken' and associate it with the current document.
+  create: AuthTokenInput
+  # Connect a document of type 'AuthToken' with the current document using its ID.
+  connect: ID
+  # If true, disconnects this document from 'AuthToken'
+  disconnect: Boolean
+}
+
+# Allow manipulating the relationship between the types 'Upload' and 'Content' using the field 'Upload.content'.
+input UploadContentRelation {
+  # Create a document of type 'Content' and associate it with the current document.
+  create: ContentInput
+  # Connect a document of type 'Content' with the current document using its ID.
+  connect: ID
+}
+
+# 'Upload' input values
+input UploadInput {
+  # User that uploaded this content.
+  user: UploadUserRelation
+  # User authentication token that was used to upload this content.
+  # Note: nullable, because the user may have used a Magic.link token.
+  authToken: UploadAuthTokenRelation
+  # User provided name for this upload.
+  name: String
+  # Type of received upload data.
+  type: UploadType!
+  # The root of the uploaded content.
+  content: UploadContentRelation
+  # Creation date.
+  created: Time!
+  # Deletion date.
+  deleted: Time
+}
+
+enum UploadListSortBy {
+  Date
+  Name
+}
+
+# The pagination object for elements of type 'Upload'.
+type UploadPage {
+  # The elements of type 'Upload' in this page.
+  data: [Upload]!
+  # A cursor for elements coming after the current page.
+  after: String
+  # A cursor for elements coming before the current page.
+  before: String
+}
+
+# Type of received upload data.
+enum UploadType {
+  # A CAR file upload.
+  Car
+  # A raw blob upload in the request body.
+  Blob
+  # A multi file upload using a multipart request.
+  Multipart
+}
+
+# Allow manipulating the relationship between the types 'Upload' and 'User' using the field 'Upload.user'.
+input UploadUserRelation {
+  # Create a document of type 'User' and associate it with the current document.
+  create: UserInput
+  # Connect a document of type 'User' with the current document using its ID.
+  connect: ID
+}
+
+# A user of web3.storage.
+type User {
+  # GitHub user handle, may be null if user logged in via email.
+  github: String
+  name: String!
+  email: String!
+  # The document's ID.
+  _id: ID!
+  # Cryptographic public address of the Magic User.
+  publicAddress: String!
+  issuer: String!
+  picture: String
+  # Used storage in bytes.
+  usedStorage: Long
+  # Creation date.
+  created: Time!
+  # User authentification keys.
+  keys(
+    # The number of items to return per page.
+    _size: Int
+    # The pagination cursor.
+    _cursor: String
+  ): AuthTokenPage!
+  # The document's timestamp.
+  _ts: Long!
+}
+
+# 'User' input values
+input UserInput {
+  name: String!
+  picture: String
+  email: String!
+  issuer: String!
+  # GitHub user handle, may be null if user logged in via email.
+  github: String
+  # Cryptographic public address of the Magic User.
+  publicAddress: String!
+  # User authentification keys.
+  keys: UserKeysRelation
+  # Creation date.
+  created: Time!
+  # Used storage in bytes.
+  usedStorage: Long
+}
+
+# Allow manipulating the relationship between the types 'User' and 'AuthToken'.
+input UserKeysRelation {
+  # Create one or more documents of type 'AuthToken' and associate them with the current document.
+  create: [AuthTokenInput]
+  # Connect one or more documents of type 'AuthToken' with the current document using their IDs.
+  connect: [ID]
+  # Disconnect the given documents of type 'AuthToken' from the current document using their IDs.
+  disconnect: [ID]
+}
+
